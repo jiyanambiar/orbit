@@ -8,7 +8,7 @@ Orbit is a calming, single-page notes app that turns your thoughts into glowing 
   <strong>Write a thought&nbsp; · &nbsp;Set it in orbit&nbsp; · &nbsp;Come back to it when you need it</strong>
 </p>
 
-## ✨ Features
+##  Features
 
 - **A living night sky** — layered stars, glowing orbital paths, a detailed moon, and a gentle sense of motion.
 - **Notes as orbiting stars** — create a thought and choose which orbit it belongs to.
@@ -18,7 +18,7 @@ Orbit is a calming, single-page notes app that turns your thoughts into glowing 
 - **Keyboard friendly** — use Tab to reach the orbits and stars, Enter or Space to open them, and Escape to close the note editor.
 - **Responsive and self-contained** — built with plain HTML, CSS, SVG, and JavaScript, with no frameworks or dependencies.
 
-## 🚀 Get started
+## Get started
 
 No install or build step is needed.
 
@@ -28,18 +28,18 @@ No install or build step is needed.
 
 You can also serve the folder with any static web server. The app runs entirely in the browser.
 
-## 💾 Your notes
+##  Your notes
 
 Orbit stores notes in your browser’s local storage under `orbit-notes-v1`. They stay on that browser and device, and are not synced to an account or sent to a server. Clearing the browser’s site data will remove them.
 
-## 🛠️ Built with
+##  Built with
 
 - HTML, CSS, and vanilla JavaScript
 - SVG for the orbital paths, moon, and animated stars
 - `localStorage` for on-device note persistence
 - `requestAnimationFrame` for smooth orbital motion
 
-## 🌙 Make it yours
+##  Make it yours
 
 The colors, orbit geometry, and animation are defined in `index.html`, so you can customize the universe without a build tool. Change the palette in the CSS variables, or adjust the orbit sizes and speeds in the JavaScript.
 
