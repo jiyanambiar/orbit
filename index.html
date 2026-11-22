@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080b18">
+  <meta name="description" content="A little universe for the thoughts you want to keep close.">
+  <title>Orbit — notes in motion</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f4f3ff;
+      --muted: #a5a7c2;
+      --gold: #ffe7a0;
+      --lavender: #c9bfff;
+      --scene-x: 50%;
+      --scene-y: 57%;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: #080b18; }
+    body { color: var(--ink); overflow: hidden; }
+    button, textarea, input { font: inherit; }
+    button { color: inherit; }
+    .universe {
+      position: relative;
+      width: 100vw;
+      height: 100svh;
+      min-height: 560px;
+      overflow: hidden;
+      isolation: isolate;
+      background:
+        radial-gradient(ellipse at 50% 52%, rgba(11, 22, 59, 0.25), transparent 38%),
+        radial-gradient(ellipse at 50% 105%, rgba(6, 16, 43, 0.17), transparent 50%),
+        linear-gradient(160deg, #02050d 0%, #071027 48%, #040817 100%);
+    }
+    .universe::before, .universe::after {
+      content: ""; position: absolute; inset: 0; pointer-events: none; z-index: -1;
+    }
+    .universe::before {
+      opacity: .38;
+      background-image:
+        radial-gradient(1px 1px at 12% 16%, #fff 98%, transparent),
+        radial-gradient(1.5px 1.5px at 82% 12%, #c9d4ff 98%, transparent),
+        radial-gradient(1px 1px at 70% 28%, #fff 98%, transparent),
+        radial-gradient(1.5px 1.5px at 24% 37%, #d9ceff 98%, transparent),
+        radial-gradient(1px 1px at 91% 47%, #fff 98%, transparent),
+        radial-gradient(1px 1px at 8% 59%, #fff 98%, transparent),
+        radial-gradient(1.5px 1.5px at 78% 76%, #e5ddff 98%, transparent),
+        radial-gradient(1px 1px at 31% 87%, #fff 98%, transparent),
+        radial-gradient(1px 1px at 56% 8%, #fff 98%, transparent);
+    }
+    .universe::after {
+      background: radial-gradient(ellipse at center, transparent 38%, rgba(4, 6, 17, .43) 100%);
+    }
+    .topbar {
+      position: absolute; z-index: 3; top: max(28px, env(safe-area-inset-top)); left: 0; right: 0;
+      display: flex; align-items: flex-start; justify-content: space-between; padding: 0 clamp(24px, 6vw, 84px);
+    }
+    .brand { display: flex; gap: 11px; align-items: center; color: #e4ddff; font-size: 13px; letter-spacing: .19em; text-transform: uppercase; font-weight: 650; }
+    .brand-mark { width: 20px; height: 20px; border: 1px solid rgba(215,204,255,.7); border-radius: 50%; position: relative; transform: rotate(-25deg); }
+    .brand-mark::before { content:""; position:absolute; inset: 4px -4px; border:1px solid rgba(215,204,255,.65); border-radius:50%; }
+    .brand-mark::after { content:""; position:absolute; width:4px;height:4px;border-radius:50%;background:var(--gold);right:-3px;top:1px;box-shadow:0 0 9px var(--gold); }
+    .top-hint { color: rgba(221,220,242,.65); font-size: 12px; letter-spacing: .04em; }
+    .clock {
+      position: absolute; z-index: 2; top: 11.5%; left: 50%; width: 100%; transform: translateX(-50%); text-align: center; pointer-events: none;
+      text-shadow: 0 2px 30px rgba(139,133,213,.24);
+    }
+    .clock-date { color: #c8c6e0; font-size: clamp(13px, 2vw, 16px); font-weight: 450; letter-spacing: .13em; text-transform: uppercase; }
+    .clock-time { margin-top: 5px; font-size: clamp(57px, 11vw, 96px); line-height: 1; font-weight: 250; letter-spacing: -.065em; font-variant-numeric: tabular-nums; }
+    .clock-caption { margin-top: 15px; color: rgba(205,204,228,.67); font-size: 12px; letter-spacing: .08em; }
+    #sky { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; overflow: visible; }
+    .orbit-line { fill: none; stroke: rgba(192, 190, 235, .2); stroke-width: 1.1; transition: stroke .15s, opacity .2s, stroke-width .15s, filter .15s; }
+    .orbit-glint { fill: none; stroke: url(#orbitGlow); stroke-width: 1.2; stroke-dasharray: 22 1200; opacity: .8; }
+    .orbit-hit { fill: none; stroke: transparent; stroke-width: 18; cursor: pointer; pointer-events: stroke; }
+    .orbit-line, .orbit-hit { transition: stroke .25s, opacity .25s; }
+    .orbit-group { cursor: crosshair; }
+    .orbit-group:hover .orbit-line, .orbit-group:focus-visible .orbit-line { stroke: rgba(239, 233, 255, .98); stroke-width: 2.5; filter: drop-shadow(0 0 7px rgba(194, 177, 255, .9)); }
+    .orbit-star { cursor: pointer; animation: twinkle 2.2s ease-in-out infinite; filter: drop-shadow(0 0 5px rgba(255, 226, 137, .95)) drop-shadow(0 0 12px rgba(255, 201, 103, .68)); }
+    .orbit-star:hover { filter: drop-shadow(0 0 9px #fff1b9) drop-shadow(0 0 18px rgba(255, 201, 103, .9)); }
+    .star-shape { fill: #fff0a8; stroke: #fffdf1; stroke-width: .9; }
+    .star-halo { fill: #ffd96d; opacity: .46; }
+    .moon-halo { fill: url(#moonGlow); }
+    .moon-body { fill: url(#moonSurface); stroke: rgba(255, 255, 246, .82); stroke-width: 2; filter: drop-shadow(0 0 9px rgba(232, 241, 255, .76)) drop-shadow(0 0 27px rgba(170, 194, 255, .4)); }
+    .moon-mare { fill: #8e96a6; opacity: .18; }
+    .moon-crater { fill: url(#craterShade); stroke: rgba(111, 121, 139, .33); stroke-width: 1; }
+    .moon-rim { fill: none; stroke: rgba(255, 255, 255, .56); stroke-width: 1.1; }
+    .moon-shadow-rim { fill: none; stroke: rgba(112, 122, 141, .34); stroke-width: 1.3; }
+    .moon-sparkle { fill: #fff; filter: drop-shadow(0 0 8px #fff); }
+    .bottom {
+      position: absolute; z-index: 3; bottom: max(26px, env(safe-area-inset-bottom)); left: 0; right: 0;
+      display: flex; align-items: end; justify-content: space-between; padding: 0 clamp(24px, 6vw, 84px);
+    }
+    .note-count { color: rgba(221,220,242,.67); font-size: 12px; letter-spacing: .06em; }
+    .add-button {
+      display: inline-flex; align-items: center; gap: 10px; padding: 13px 19px; border-radius: 999px;
+      border: 1px solid rgba(220,213,255,.23); background: rgba(221,215,255,.075); color: #f0edff;
+      backdrop-filter: blur(16px); cursor: pointer; transition: background .2s, border-color .2s, transform .2s;
+    }
+    .add-button:hover { background: rgba(221,215,255,.14); border-color: rgba(220,213,255,.5); transform: translateY(-2px); }
+    .plus { font-size: 20px; font-weight: 300; line-height: 15px; color: #e0d7ff; }
+    .orbit-label { fill: rgba(199,197,226,.5); font-size: 13px; letter-spacing: 2px; text-transform: uppercase; pointer-events: none; }
+    .modal-backdrop {
+      position: fixed; z-index: 10; inset: 0; display: grid; place-items: center; padding: 20px;
+      background: rgba(4,5,14,.56); backdrop-filter: blur(12px); opacity: 0; visibility: hidden; transition: opacity .22s, visibility .22s;
+    }
+    .modal-backdrop.open { opacity: 1; visibility: visible; }
+    .note-card {
+      width: min(100%, 410px); padding: 25px; border: 1px solid rgba(222,215,255,.2); border-radius: 23px;
+      background: linear-gradient(145deg, rgba(18, 22, 66, 0.97), rgba(15,18,37,.98)); box-shadow: 0 24px 90px rgba(0,0,0,.48);
+      transform: translateY(12px) scale(.985); transition: transform .22s;
+    }
+    .open .note-card { transform: translateY(0) scale(1); }
+    .card-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:19px; }
+    .card-kicker { color: #c8bfff; font-size: 11px; text-transform: uppercase; letter-spacing: .17em; }
+    .close-button { width:32px;height:32px;border:0;border-radius:50%;background:rgba(255,255,255,.07);color:#d8d6eb;font-size:20px;cursor:pointer; }
+    .note-title, .note-body {
+      width:100%; border:0; outline:0; color:#f6f4ff; background:transparent; resize:none;
+    }
+    .note-title { font-size:22px; font-weight:520; padding:7px 0 12px; border-bottom:1px solid rgba(219,215,246,.13); }
+    .note-title::placeholder { color:rgba(223,220,241,.4); }
+    .note-body { min-height:145px; padding:15px 0 10px; font-size:15px; line-height:1.65; }
+    .note-body::placeholder { color:rgba(223,220,241,.4); }
+    .card-bottom { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:6px; }
+    .orbit-select { color:rgba(225,223,243,.72); font-size:12px; }
+    .orbit-select select { color:#e8e4ff; background:#222541; border:1px solid rgba(222,215,255,.18); border-radius:9px; padding:7px 25px 7px 9px; margin-left:4px; }
+    .save-button { border:0; border-radius:999px; padding:10px 18px; color:#080a31; background:linear-gradient(135deg,#fff0b6,#e5d5ff); font-weight:650; cursor:pointer; }
+    .delete-button { border:0; background:transparent; color:#dca8b6; font-size:12px; cursor:pointer; }
+    .toast { position:absolute; z-index:4; top: max(77px, calc(env(safe-area-inset-top) + 54px)); left:50%; transform:translate(-50%,-8px); opacity:0; pointer-events:none; transition:.25s; color:#e9e3ff; background:rgba(37,39,69,.85); border:1px solid rgba(220,213,255,.17); border-radius:999px; padding:9px 14px; font-size:12px; white-space:nowrap; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    @keyframes twinkle { 0%,100%{opacity:.82} 50%{opacity:1} }
+    @media (max-height: 700px) {
+      .clock { top: 9%; }
+      .clock-time { font-size: clamp(52px, 9vw, 76px); }
+    }
+    @media (max-width: 600px) {
+      .topbar { top:max(24px, env(safe-area-inset-top)); }
+      .top-hint { display:none; }
+      .clock { top: 12.5%; }
+      .clock-caption { margin-top:10px; }
+      .bottom { align-items:center; }
+      .add-button { padding:12px 16px; font-size:13px; }
+      .note-card { padding:22px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="universe" aria-label="Orbit notes">
+    <div class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span>Orbit</span></div>
+      <div class="top-hint">A little universe for your thoughts</div>
+    </div>
+    <section class="clock" aria-label="Current time and date">
+      <div class="clock-date" id="date"></div>
+      <div class="clock-time" id="time"></div>
+      
+    </section>
+    <svg id="sky" viewBox="0 0 1000 1000" preserveAspectRatio="none" role="img" aria-label="Six elliptical orbits around your notes">
+      <defs>
+        <linearGradient id="orbitGlow" x1="0" x2="1"><stop stop-color="#c7bdff" stop-opacity="0"/><stop offset=".5" stop-color="#dfd5ff"/><stop offset="1" stop-color="#c7bdff" stop-opacity="0"/></linearGradient>
+        <radialGradient id="moonSurface" cx="31%" cy="25%"><stop stop-color="#f1f2f5"/><stop offset=".3" stop-color="#e5e8ef"/><stop offset=".67" stop-color="#c3cad7"/><stop offset="1" stop-color="#858fa4"/></radialGradient>
+        <radialGradient id="moonGlow"><stop stop-color="#f2f6ff" stop-opacity=".5"/><stop offset=".42" stop-color="#e3edff" stop-opacity=".24"/><stop offset="1" stop-color="#aebfff" stop-opacity="0"/></radialGradient>
+        <radialGradient id="craterShade" cx="34%" cy="28%"><stop stop-color="#9ca5b3" stop-opacity=".58"/><stop offset=".7" stop-color="#abb2be" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity=".3"/></radialGradient>
+        <clipPath id="moonClip"><circle cx="500" cy="600" r="77"/></clipPath>
+        <filter id="starGlow" x="-200%" y="-200%" width="400%" height="400%"><feGaussianBlur stdDeviation="7"/></filter>
+      </defs>
+      <g id="orbits"></g>
+      <g id="stars"></g>
+      <g id="center" aria-hidden="true">
+        <g id="moonGraphic">
+          <circle class="moon-halo" cx="500" cy="600" r="145"></circle>
+          <circle class="moon-body" cx="500" cy="600" r="77"></circle>
+          <g clip-path="url(#moonClip)">
+            <path class="moon-mare" d="M438 547 Q449 532 464 538 Q474 531 484 541 Q494 549 486 559 Q478 567 466 562 Q456 571 447 561Z"/>
+            <path class="moon-mare" d="M508 550 Q521 539 535 547 Q545 552 539 565 Q531 576 518 568 Q507 565 508 550Z"/>
+            <path class="moon-mare" d="M483 585 Q496 576 506 584 Q514 591 506 600 Q499 607 488 602Z"/>
+            <circle class="moon-crater" cx="462" cy="578" r="8"/>
+            <circle class="moon-rim" cx="460" cy="576" r="8"/>
+            <circle class="moon-shadow-rim" cx="464" cy="580" r="7"/>
+            <circle class="moon-crater" cx="520" cy="579" r="11"/>
+            <circle class="moon-rim" cx="517" cy="576" r="10"/>
+            <circle class="moon-shadow-rim" cx="522" cy="582" r="9"/>
+            <circle class="moon-crater" cx="490" cy="548" r="5"/>
+            <circle class="moon-rim" cx="488.5" cy="546.5" r="4.5"/>
+            <circle class="moon-crater" cx="541" cy="603" r="7"/>
+            <circle class="moon-rim" cx="539" cy="601" r="6.5"/>
+            <circle class="moon-crater" cx="475" cy="615" r="12"/>
+            <circle class="moon-rim" cx="472" cy="612" r="11"/>
+            <circle class="moon-crater" cx="514" cy="628" r="6"/>
+            <circle class="moon-rim" cx="512" cy="626" r="5.5"/>
+            <circle class="moon-sparkle" cx="481" cy="564" r="1.8"/>
+            <circle class="moon-sparkle" cx="532" cy="557" r="1.2"/>
+            <circle class="moon-sparkle" cx="498" cy="617" r="1.5"/>
+          </g>
+          <circle class="moon-rim" cx="500" cy="600" r="78"></circle>
+        </g>
+        <circle cx="500" cy="600" r="94" fill="transparent" style="cursor:pointer" id="centerButton"></circle>
+      </g>
+    </svg>
+    <div class="toast" id="toast" role="status"></div>
+    <div class="bottom">
+      <div class="note-count" id="noteCount">0 thoughts in orbit</div>
+      <button class="add-button" id="quickAdd"><span class="plus" aria-hidden="true">+</span> New thought</button>
+    </div>
+  </main>
+
+  <div class="modal-backdrop" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalHeading">
+    <form class="note-card" id="noteForm">
+      <div class="card-top">
+        <div class="card-kicker" id="modalHeading">A thought for the universe</div>
+        <button class="close-button" id="closeModal" type="button" aria-label="Close">×</button>
+      </div>
+      <input class="note-title" id="noteTitle" maxlength="70" placeholder="Give this thought a name" autocomplete="off">
+      <textarea class="note-body" id="noteBody" maxlength="2000" placeholder="Write whatever is on your mind…"></textarea>
+      <div class="card-bottom">
+        <div class="orbit-select">Orbit <select id="orbitSelect" aria-label="Choose orbit"></select></div>
+        <button class="delete-button" id="deleteNote" type="button" hidden>Delete</button>
+        <button class="save-button" type="submit">Save as a star</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    (() => {
+      const cx = 500, cy = 600;
+      const orbitRadii = [165, 220, 275, 330, 385, 440];
+      const orbitRatios = [.52, .57, .62, .67, .72, .77];
+      const orbitSpeed = index => (Math.PI * 2) / (180 + index * 55);
+      const orbitGroup = document.getElementById('orbits');
+      const starGroup = document.getElementById('stars');
+      const modal = document.getElementById('modal');
+      const form = document.getElementById('noteForm');
+      const titleInput = document.getElementById('noteTitle');
+      const bodyInput = document.getElementById('noteBody');
+      const orbitSelect = document.getElementById('orbitSelect');
+      const deleteButton = document.getElementById('deleteNote');
+      const svg = document.getElementById('sky');
+      let notes = [];
+      let editingId = null;
+      let pendingAngle = 0;
+      let toastTimer;
+      const starElements = new Map();
+      try { notes = JSON.parse(localStorage.getItem('orbit-notes-v1') || '[]'); if (!Array.isArray(notes)) notes = []; }
+      catch { notes = []; }
+
+      const makeSvg = (name, attrs = {}) => {
+        const el = document.createElementNS('http://www.w3.org/2000/svg', name);
+        for (const [key, value] of Object.entries(attrs)) el.setAttribute(key, value);
+        return el;
+      };
+      orbitRadii.forEach((rx, index) => {
+        const ry = rx * orbitRatios[index];
+        const group = makeSvg('g', { class: 'orbit-group', tabindex: '0', role: 'button', 'aria-label': `Add a thought to orbit ${index + 1}` });
+        group.dataset.orbit = index;
+        group.append(makeSvg('ellipse', { class: 'orbit-line', cx, cy, rx, ry }));
+        group.append(makeSvg('ellipse', { class: 'orbit-glint', cx, cy, rx, ry, 'stroke-dashoffset': `${index * 98}` }));
+        const hit = makeSvg('ellipse', { class: 'orbit-hit', cx, cy, rx, ry, 'stroke-width': '18', 'vector-effect': 'non-scaling-stroke' });
+        group.append(hit);
+        group.addEventListener('click', event => {
+          const p = svg.createSVGPoint(); p.x = event.clientX; p.y = event.clientY;
+          const pos = p.matrixTransform(svg.getScreenCTM().inverse());
+          pendingAngle = Math.atan2((pos.y - cy) / ry, (pos.x - cx) / rx);
+          openNote(index, null);
+        });
+        group.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); pendingAngle = -Math.PI / 2; openNote(index, null); }
+        });
+        orbitGroup.append(group);
+        const option = document.createElement('option'); option.value = index; option.textContent = `${index + 1}`; orbitSelect.append(option);
+      });
+      document.getElementById('centerButton').addEventListener('click', () => { pendingAngle = Math.random() * Math.PI * 2; openNote(2, null); });
+
+      function save() {
+        try { localStorage.setItem('orbit-notes-v1', JSON.stringify(notes)); }
+        catch { showToast('Could not save on this device'); }
+      }
+      function openNote(orbit, note) {
+        editingId = note?.id ?? null;
+        pendingAngle = note?.angle ?? pendingAngle;
+        titleInput.value = note?.title ?? '';
+        bodyInput.value = note?.body ?? '';
+        orbitSelect.value = String(note?.orbit ?? orbit);
+        document.getElementById('modalHeading').textContent = note ? 'A thought in your universe' : 'A thought for the universe';
+        deleteButton.hidden = !note;
+        modal.classList.add('open');
+        window.setTimeout(() => (note?.title ? bodyInput : titleInput).focus(), 100);
+      }
+      function closeNote() { modal.classList.remove('open'); editingId = null; }
+      function showToast(message) {
+        const toast = document.getElementById('toast'); toast.textContent = message; toast.classList.add('show');
+        clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 2100);
+      }
+      document.getElementById('closeModal').addEventListener('click', closeNote);
+      modal.addEventListener('click', event => { if (event.target === modal) closeNote(); });
+      document.addEventListener('keydown', event => { if (event.key === 'Escape' && modal.classList.contains('open')) closeNote(); });
+      document.getElementById('quickAdd').addEventListener('click', () => { pendingAngle = Math.random() * Math.PI * 2; openNote(2, null); });
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        const title = titleInput.value.trim() || bodyInput.value.trim().split(/\s+/).slice(0, 5).join(' ') || 'A little thought';
+        const body = bodyInput.value.trim();
+        if (editingId) {
+          const note = notes.find(item => item.id === editingId);
+          if (note) Object.assign(note, { title, body, orbit: Number(orbitSelect.value) });
+          showToast('Your star has been updated');
+        } else {
+          const orbit = Number(orbitSelect.value);
+          notes.push({ id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`, title, body, orbit, angle: pendingAngle, speed: (Math.random() > .5 ? 1 : -1) * orbitSpeed(orbit), created: Date.now() });
+          showToast('Your thought is now a star');
+        }
+        save(); renderStars(); closeNote();
+      });
+      deleteButton.addEventListener('click', () => {
+        notes = notes.filter(note => note.id !== editingId); save(); renderStars(); closeNote(); showToast('Star removed from orbit');
+      });
+      function renderStars() {
+        starGroup.replaceChildren();
+        starElements.clear();
+        notes.forEach((note, index) => {
+          if (!Number.isInteger(note.orbit) || note.orbit < 0 || note.orbit >= orbitRadii.length) note.orbit = 2;
+          if (typeof note.angle !== 'number') note.angle = Math.random() * Math.PI * 2;
+          const star = makeSvg('g', { class: 'orbit-star', role: 'button', tabindex: '0', 'aria-label': `Open note: ${note.title || 'A little thought'}` });
+          const matrix = svg.getScreenCTM();
+          const hitX = matrix ? 23 / Math.abs(matrix.a) : 23;
+          const hitY = matrix ? 23 / Math.abs(matrix.d) : 23;
+          star.append(makeSvg('ellipse', { cx: 0, cy: 0, rx: hitX, ry: hitY, fill: '#fff', opacity: '0', 'pointer-events': 'all' }));
+          star.append(makeSvg('circle', { class: 'star-halo', r: 12, filter: 'url(#starGlow)' }));
+          star.append(makeSvg('path', { class: 'star-shape', d: 'M0,-10 2.5,-3 10,0 2.5,3 0,10 -2.5,3 -10,0 -2.5,-3Z' }));
+          star.addEventListener('click', event => { event.stopPropagation(); openNote(note.orbit, note); });
+          star.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); openNote(note.orbit, note); } });
+          starGroup.append(star);
+          starElements.set(note.id, star);
+          note.speed = (Math.sign(note.speed) || 1) * orbitSpeed(note.orbit);
+        });
+        const count = notes.length;
+        document.getElementById('noteCount').textContent = `${count} ${count === 1 ? 'thought' : 'thoughts'} in orbit`;
+      }
+      function alignMoon() {
+        const matrix = svg.getScreenCTM();
+        if (!matrix || !matrix.a || !matrix.d) return;
+        const horizontalScale = matrix.d / matrix.a;
+        document.getElementById('moonGraphic').setAttribute('transform', `translate(${cx} ${cy}) scale(${horizontalScale} 1) translate(${-cx} ${-cy})`);
+      }
+      window.addEventListener('resize', () => { renderStars(); alignMoon(); });
+      let previous = 0;
+      function animate(now) {
+        const dt = Math.min((now - (previous || now)) / 1000, .05); previous = now;
+        notes.forEach(note => {
+          note.angle += dt * note.speed;
+          const rx = orbitRadii[note.orbit], ry = rx * orbitRatios[note.orbit];
+          starElements.get(note.id)?.setAttribute('transform', `translate(${cx + rx * Math.cos(note.angle)} ${cy + ry * Math.sin(note.angle)})`);
+        });
+        requestAnimationFrame(animate);
+      }
+      function updateClock() {
+        const now = new Date();
+        document.getElementById('time').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+        document.getElementById('date').textContent = now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+      }
+      renderStars(); alignMoon(); updateClock(); setInterval(updateClock, 15000); requestAnimationFrame(animate);
+    })();
+  </script>
+</body>
+</html>
